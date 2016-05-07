@@ -1,22 +1,37 @@
 ################################################
 ### Montar base de dados de custos agrícolas ###
 ################################################
+# Encoding = LATIN1
 
 setwd("C:/Documentos/myID/R")
 install.packages("xlsx")
 library(xlsx)
+library(stringr)
 
-# Guarda código que funcionou:
-# milho2 <- read.xlsx("milho_1997_a_2015.xls", sheetIndex = 1, 
-#                      rowIndex = c(11:47), colIndex = 1:4,
-#                      stringsAsFactors = F)
-# str(milho2)
+# Faz download do script da CONAB
+download.file(url = "http://conab.gov.br/conteudos.php?a=1555&t=2", destfile = "scriptCONAB.php")
+
+# Lê o script da CONAB em um objeto.
+script <- read.table("scriptCONAB.php", fill = TRUE, stringsAsFactors = FALSE)
+
+# Encontra os link para download no script
+col_links <- grep(pattern = "uploads", x = script)
+lin_links <- grep(pattern = "uploads", x = script[[col_links]])
+links <- script[lin_links, col_links]
+links <- gsub(pattern = "href=\\\"", replacement = "", x = links)
+links <- gsub(pattern = "xls\\\"", replacement = "xls", x = links)
+links
+
+# Extrai o nome das tabelas
+tabelas <- str_extract_all(string = links, pattern = "_[a-z]+[-]?[a-z]+[-]?_")
+tabelas <- gsub(pattern = "_", replacement = "", x = tabelas)
+tabelas <- paste0(tabelas, ".xls")
 
 # Define função que l? todas as abas da tabela
 le_abas <- function(tabela) {
   wb <- loadWorkbook(tabela)
   numAbas <- wb$getNumberOfSheets()
-  resultado <- list()
+  resultado <- vector("list", length = numAbas)
   for (aba in 1:numAbas) {
     resultado[[aba]] <- read.xlsx(as.character(tabela), sheetIndex = aba,
                                   rowIndex = 1:60, colIndex = 1:4,
@@ -26,10 +41,6 @@ le_abas <- function(tabela) {
   return(resultado)
 }
 # Fim da função
-
-for (aba in 1:numAbas) {
-  print(names(getSheets(wb)[aba]))
-}
 
 # Testando a função para ler os custos de milho
 milho <- le_abas("Dados/milho_1997_a_2015.xls")
