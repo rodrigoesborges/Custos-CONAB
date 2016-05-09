@@ -2,8 +2,9 @@
 ### Montar base de dados de custos agrícolas ###
 ################################################
 
-setwd("C:/Documentos/myID/R")
+#setwd("C:/Documentos/myID/R")   - não funcionou para mim... buscar conhecer forma mais funcional entre OS (caminho relativo?)
 install.packages("xlsx")
+install.packages("stringr") # precisei adicionar - não veio instalado por padrão na instalação do OS (openSUSE 13.2)
 library(xlsx)
 library(stringr)
 
@@ -17,6 +18,7 @@ script <- read.table("scriptCONAB.html",
                      stringsAsFactors = FALSE)
 
 # Encontra os link para download no script
+Sys.setlocale('LC_ALL','C') # sugerido como solução para mensagens de aviso do tipo "string de entrada 218 é inválida nesse locale"
 col_links <- grep(pattern = "uploads",
                   x = script)
 lin_links <- grep(pattern = "uploads",
@@ -67,7 +69,7 @@ names(milho[32])
 copia <- milho
 # Fim do teste
 
-# Pegar informações do baceçalho
+# Pegar informações do cabeçalho
   # a) Cidade - UF
   # b) Safra
   # c) Produto
